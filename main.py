@@ -1,26 +1,34 @@
 import requests
-import sys
-
-
-class Review:
-    pass
 
 
 def get_reviews(appID):
-    """Function which gets the appropriate JSON file from the steamAPI
+    """Function which gets the appropriate JSON file from the steamAPI and appends the reviews into a list
 
     :parameter
     appID - The appID of the steam game
     """
 
-    game_url = 'http://store.steampowered.com/appreviews/'+appID+'?json=1'
-    return requests.get(url=game_url).json()
+    print("Fetching Reviews..")
+    game_url = 'http://store.steampowered.com/appreviews/'+appID+'?json=1&cursor=*&filter=updated'
+    response = requests.get(game_url).json()
+
+    reviews_list = []
+    for item in response['reviews']:
+        reviews_list.append(item)
+
+    while True:  # Loops through while there is a value for 'cursor'
+        try:
+            game_url = 'http://store.steampowered.com/appreviews/'+appID+'?json=1&cursor='+response['cursor']+'&filter=updated'
+            response = requests.get(game_url).json()
+            for item in response['reviews']:
+                reviews_list.append(item)
+        except:
+            break
+    print("Reviews Collected: " + str(len(reviews_list)))
+
+    return reviews_list  # List contains all gathered reviews
 
 
 if __name__ == '__main__':
-    try:
-        response_data = get_reviews("1382330")
-    except:
-        sys.exit(1)
-
-    print(response_data['reviews'])  # Output of all of the reviews for appID 1382330
+    response_data = get_reviews("1382330")
+    print(response_data)
