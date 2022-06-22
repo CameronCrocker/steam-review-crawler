@@ -1,6 +1,7 @@
 from datetime import datetime
 import requests
 import uuid
+import json
 
 
 class Review:
@@ -24,7 +25,6 @@ class Review:
                self.funny, self.recommended, self.franchise, self.game_name
 
 
-
 def get_reviews(appID, source, franchise, game_name):
     """Function which gets the appropriate JSON file from the steamAPI and appends the reviews into a list
 
@@ -46,7 +46,7 @@ def get_reviews(appID, source, franchise, game_name):
                 date = datetime.fromtimestamp(item['timestamp_created']).strftime('%d-%m-%y')
 
                 item['recommendationid'] = Review(item['recommendationid'],  # ID
-                                                  author,  # Review Author
+                                                  str(author),  # Review Author
                                                   date,  # Date review was written
                                                   item['author']['playtime_forever'],  # Total play time of reviewer
                                                   item['review'],  # Review content
@@ -66,8 +66,48 @@ def get_reviews(appID, source, franchise, game_name):
             break
     print("Reviews Collected: " + str(len(reviews_list)))
 
-    return reviews_list # List contains all gathered reviews
+    return reviews_list  # List contains all gathered reviews
+
+
+def json_string(id, author, date, hours, content, comments, source, helpful, funny, recommended, franchise, gameName):
+    _ = {
+        "id": id,
+        "author": author,
+        "date": date,
+        "hours": hours,
+        "content": content,
+        "comments": comments,
+        "source": source,
+        "helpful": helpful,
+        "funny": funny,
+        "recommended": recommended,
+        "franchise": franchise,
+        "gameName": gameName
+    }
+    return _
 
 
 if __name__ == '__main__':
     review_ids = get_reviews("1382330", "steam", "Persona", "Persona 5 Strikers")
+
+    count = 0
+    file_count = 1
+    review_list = []
+
+    for item in review_ids:
+        if count == 5000:
+            count = 0
+            file_count += 1
+            review_list = []
+
+        id, author, date, hours, content, comments, source, helpful, funny, recommended, franchise, gameName = \
+            review_ids[review_ids.index(item)].get_content()
+
+        _ = json_string(id, author, date, hours, content, comments, source, helpful, funny, recommended, franchise,
+                        gameName)
+
+        review_list.append(_)
+        count += 1
+
+        with open("{}reviews.txt".format(file_count), "w") as f:
+            json.dump(review_list, f, indent=4, separators=(',', ': '))
