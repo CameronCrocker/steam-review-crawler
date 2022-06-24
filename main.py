@@ -67,7 +67,7 @@ def get_reviews(appID, source, franchise, game_name):
                                                       )
 
                     reviews_list.append(item['recommendationid'])
-                    #print(str(len(reviews_list)) + " Cusrsor is: " + cursor)
+                    
             else:
                 break
 
